@@ -13,7 +13,9 @@ int main (){
 	cout << "Tree: Root Level: " << tree->getRoot()->getLevel() << endl; 
 	cout << "Tree: " << tree->getRoot()->getLevel() << endl; 
 
-	if(tree->find(1)) cout << "Finded" << endl;
+	tree->insert(2);
+
+	if(tree->find(2)) cout << "Finded" << endl;
 	else cout << "Not founded" << endl;
 
 	delete node;

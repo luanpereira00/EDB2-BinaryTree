@@ -1,6 +1,8 @@
 #ifndef _BINARY_TREE_H_
 #define _BINARY_TREE_H_ 
 
+#include <cstdlib>
+
 template <typename T>
 class Node{
 	private:
@@ -47,7 +49,7 @@ class Node{
 		void setData(T d){ 
 			data = d; 
 		}
-		void setLeve(int l){ 
+		void setLevel(int l){ 
 			level = l; 
 		}
 		void setSae(Node<T>* s){ 
@@ -71,12 +73,100 @@ class Node{
 		}
 };
 
+/*template <typename T>
+class Level{
+	private:
+		Node<T>* node;
+		int level; 
+
+	public:
+		Node(){
+			level = -1;
+			//data=NULL;
+			Sae_ptr=nullptr;
+			Sad_ptr=nullptr;
+		}
+
+		Level(T value){
+			node = new Node<T>(value);
+			level = 0;
+		}
+
+		~Level(){
+			delete node;
+		}
+
+		Node<T>* getNode(){ 
+			return node; 
+		}
+
+		int getLevel(){ 
+			return level; 
+		}
+
+		void upLevel(){ 
+			level++; 
+		}
+
+		/** @brief Sobrecarga do operador de atribuicao (para Data)
+		* @param	d Data que sera passada por atribuicao  
+		* @return	Retorna a Data atribuida
+		*/
+		/*Node& operator=(const Node d){
+			node = d;
+			level = d.level;
+			Sae_ptr = d.Sae_ptr;
+			Sad_ptr = d.Sad_ptr;
+
+			return *this;
+		}
+};*/
+
 template <typename T>
 class BinaryTree{
 private:
 	Node<T>* root;
+	Node<T>* nodeFinded; //Only used in searchs
+
+	//flags
 	bool searchFlag;
-	Node<T>* nodeFinded;
+	bool fullFlag;
+
+	int treeHeight;
+	int maxNodePerLevel;
+	int nodePerLevel;
+	
+	Node<T>* getFinded(){
+		return nodeFinded;
+	}
+
+	void upNodePerLevel(){
+		nodePerLevel++;
+		checkIfNeedGrowUp();
+	}
+
+	void checkIfNeedGrowUp(){
+		if(nodePerLevel>maxNodePerLevel) growTree();
+	}
+
+	void growTree(){
+		fullFlag = false; //do i need it?
+		treeHeight++;
+		maxNodePerLevel=pow(treeHeight, 2);
+		nodePerLevel=0;
+	}
+
+	void setFinded(Node<T>* n){
+		nodeFinded = n;
+	}
+
+	void setOnSearch(){
+		searchFlag = true;
+	}
+
+	void setOffSearch(){
+		searchFlag = false;
+	}
 
 	bool findWhoPointsTo(Node<T>* node){
 		if(checkIfIsHere(root, node)){
@@ -97,7 +187,7 @@ private:
 	}
 
 	bool checkIfIsHere(Node<T>* rt, Node<T>* node){
-		cout << rt->getData() << " - " <<  node->getData() << endl;
+		//cout << rt->getData() << " - " <<  node->getData() << endl;
 		if(rt->getData() == node->getData())  {
 			return true;
 		}
@@ -112,22 +202,6 @@ private:
 			}
 		}
 		return false;
-	}
-
-	Node<T>* getFinded(){
-		return nodeFinded;
-	}
-
-	void setFinded(Node<T>* n){
-		nodeFinded = n;
-	}
-
-	void setOnSearch(){
-		searchFlag = true;
-	}
-
-	void setOffSearch(){
-		searchFlag = false;
 	}
 
 	bool findIn(Node<T>* rt, Node<T>* node){
@@ -145,6 +219,35 @@ private:
 		return resultSae or resultSad;
 	}
 
+	//I need to find the first null in the same level
+	Node<T>* findFirstNullInLevel(Node<T> *rt, int level){
+		if(level<treeHeight){
+			Node<T>* result_Sae = nullptr;
+			Node<T>* result_Sad = nullptr;
+
+			if(rt->getSae()) result_Sae = findFirstNullInLine(rt->getSae(), level+1);
+			if(rt->getSad()) result_Sad = findFirstNullInLine(rt->getSad(), level+1);
+		
+			return result_Sae or result_Sad;
+		} else if(level==treeHeight){
+			if(!rt->getSae()) {
+				
+				return rt;
+			}
+			if(!rt->getSad()) {
+				
+				return rt;
+			}
+			return nullptr;
+		}
+		else {
+			return nullptr;
+		}
+	}
+
+	insertInto(node, value);
+
+
 public:
 	/*BinaryTree(){
 		searchFlag = false;
@@ -152,9 +255,13 @@ public:
 	}*/
 
 	BinaryTree(T value){
-		Node<T>* node = new Node<T>(value);
+		root = new Node<T>(value);
+		root->setLevel(0);
+
 		searchFlag = false;
-		root = node;
+		fullFlag = true;
+		treeHeight=0;
+		
 	}
 
 	~BinaryTree(){
@@ -166,9 +273,13 @@ public:
 		return root;
 	}
 
-	void insert(Node<T>* no){
-		Node<T>* node = new Node<T>(); 
-		*node = *no;
+	void insert(T value){
+		int level=0;
+
+		upNodePerLevel();
+		Node<T>* node = findFirstNullInLevel(root, level);
+		if(node) insertInto(node, value);
+		else cout << "Something is going wrong" << endl;
 	}
 
 	bool find(T value){
