@@ -1,0 +1,42 @@
+Structure:
+T Data;
+int Level;
+Tree *Sae_ptr;
+Tree *Sad_ptr;
+
+
+Insert();
+    FindSaeNull();
+    FindSadNull();
+    CheckMinumLevel();
+    
+DeleteNode();
+    DeleteAllSubTree();
+    DeleteNode(Node);
+        DeleteWithNoPointer(); //JustDelete
+        DeleteWithOnePointer(); //PointToNextAndDelete
+        DeleteWithTwoPointer(); //ReplaceSomeone
+
+Find();
+    FindWhoPointsTo(Node); //EveryTime
+    
+    SetOnSearch();
+    FindInSae(Node);
+    FindInSad(Node);
+    SetToVisible(Node);
+    SetOffSearch();
+
+GetSae();
+GetSad();
+
+PrintAsParentheses();
+PrintAsTabulation();
+PrintPathTo();
+PrintDetailedPathTo();
+
+GetLevel();
+GetRoot();
+GetNodo();
+GetLeaf();
+
+
