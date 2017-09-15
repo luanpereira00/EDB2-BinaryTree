@@ -82,10 +82,12 @@ class BinaryTree{
 private:
 	Node<T>* root;
 	Node<T>* nodeFinded; //Only used in searchs
+	Node<T>* nodeNextIsNull;
 
 	//flags
 	bool searchFlag;
 	bool fullFlag;
+	bool needNextNullFlag;
 
 	int treeHeight;
 	int maxNodePerLevel;
@@ -93,6 +95,10 @@ private:
 	
 	Node<T>* getFinded(){
 		return nodeFinded;
+	}
+
+	Node<T>* getNextNull(){
+		return nodeNextIsNull;
 	}
 
 	void upNodePerLevel(){
@@ -115,6 +121,11 @@ private:
 		nodeFinded = n;
 	}
 
+	void setNextNull(Node<T>* n){
+		needNextNullFlag = false;
+		nodeNextIsNull = n;
+	}
+
 	void setOnSearch(){
 		searchFlag = true;
 	}
@@ -124,9 +135,12 @@ private:
 	}
 
 	bool findWhoPointsTo(Node<T>* node){
-		if(checkIfIsHere(root, node)){
+		if(root->getData()==node->getData()){
 			setFinded(root);
 			setOffSearch();
+			return true;
+		}
+		if(checkIfIsNext(root, node)){
 			return true;
 		}
 		
@@ -134,25 +148,29 @@ private:
 
 		bool resultSae = false;
 		bool resultSad = false;
-		if(root->getSae()) resultSae = findIn(root->getSae(), node);
-		if(root->getSad()) resultSad = findIn(root->getSad(), node);
+		if(searchFlag and root->getSae()) resultSae = findIn(root->getSae(), node);
+		if(!root->getSae()) setNextNull(root);
+
+		if(searchFlag and root->getSad()) resultSad = findIn(root->getSad(), node);
+		if(!root->getSad()) setNextNull(root);
 
 		setOffSearch();
 		return resultSae or resultSad;
 	}
 
-	bool checkIfIsHere(Node<T>* rt, Node<T>* node){
+	bool checkIfIsNext(Node<T>* rt, Node<T>* node){
 		//cout << rt->getData() << " - " <<  node->getData() << endl;
-		if(rt->getData() == node->getData())  {
-			return true;
-		}
-		if(rt->getSae()){
+		if(searchFlag and rt->getSae()){
 			if(rt->getSae()->getData() == node->getData()) {
+				setFinded(rt);
+				setOffSearch();
 				return true;
 			}
 		}	
-		if(rt->getSad()){
+		if(searchFlag and rt->getSad()){
 			if(rt->getSad()->getData() == node->getData()) {
+				setFinded(rt);
+				setOffSearch();
 				return true;
 			}
 		}
@@ -160,7 +178,7 @@ private:
 	}
 
 	bool findIn(Node<T>* rt, Node<T>* node){
-		if(checkIfIsHere(rt, node)){
+		if(checkIfIsNext(rt, node)){
 			setFinded(rt);
 			setOffSearch();
 			return true;
@@ -168,28 +186,28 @@ private:
 
 		bool resultSae = false;
 		bool resultSad = false;
-		if(rt->getSae()) {
-			setFinded(rt->getSae());
-			resultSae = findIn(rt->getSae(), node);
-		}
-		if(rt->getSad()) {
-			setFinded(rt->getSad());
-			resultSad = findIn(rt->getSad(), node);
-		}		
+		if(searchFlag and rt->getSae()) resultSae = findIn(rt->getSae(), node);
+		if(rt->getLevel()==treeHeight and !rt->getSae()) setNextNull(rt);
+
+		if(searchFlag and rt->getSad()) resultSad = findIn(rt->getSad(), node);
+		if(rt->getLevel()==treeHeight and !rt->getSad()) setNextNull(rt);
+
 		
 		return resultSae or resultSad;
 	}
 
-	void insertInto(Node<T>* node){
-		if(!node->getSae()){
-			node->setSae(node);
-		} else if(!node->getSad()){
-			node->setSad(node);
+	void insertIntoTree(Node<T>* node){
+		Node<T>* next = getNextNull();
+		if(!next->getSae()){
+			next->setSae(node);
+			cout << node->getData() <<" Inserido na esquerda de " << next->getData() << endl;
+		} else if(!next->getSad()){
+			next->setSad(node);
+			cout << node->getData() <<" Inserido na direita de " << next->getData() << endl;
 		} else {
 			cout << "Deu erro" << endl;
 		}
 	}
-
 
 public:
 	/*BinaryTree(){
@@ -200,13 +218,15 @@ public:
 	BinaryTree(T value){
 		root = new Node<T>(value);
 		root->setLevel(0);
+		setFinded(root);
+		setNextNull(root);
 
+		needNextNullFlag = false;
 		searchFlag = false;
 		fullFlag = true;
-		treeHeight=0;
-		
+
+		treeHeight=1;
 		growTree();
-		
 	}
 
 	~BinaryTree(){
@@ -219,13 +239,16 @@ public:
 	}
 
 	void insert(T value){
-		//upNodePerLevel();
-		Node<T>* node = new Node<T>(value);
+		upNodePerLevel();
 		//cout << "H: " << treeHeight << "\tMaxNode: " << maxNodePerLevel << "\tNode: " <<  nodePerLevel << endl;
+		
+		Node<T>* node = new Node<T>(value);
+		node->setLevel(treeHeight);
 		if(findWhoPointsTo(node)){
 			cout << "já existe" << endl;
 		} else {
-			insertInto(node);
+			needNextNullFlag=true;
+			insertIntoTree(node);
 		}
 	}
 
